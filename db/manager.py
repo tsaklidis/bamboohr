@@ -1,6 +1,6 @@
 import pathlib
 from settings.vars import db_name
-from sqlmodel import SQLModel, create_engine, Session, select
+from sqlmodel import SQLModel, create_engine, Session
 
 class DatabaseManager:
     _db_instance = None
