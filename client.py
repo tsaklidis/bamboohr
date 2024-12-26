@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from settings.vars import debug
 from employees.models import EmployeeActions
 from helpers import add_params_to_url
-from employees.load_emps_to_db import parse_emps_and_save_to_db
+from employees.load_employees_to_db import parse_emps_and_save_to_db
 
 class BambooTimeOff:
     def __init__(self, token, company_domain):

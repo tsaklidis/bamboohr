@@ -7,8 +7,8 @@ engine = create_engine(f'sqlite:///../{db_name}')
 SQLModel.metadata.create_all(engine)
 
 
-def parse_emps_and_save_to_db(all_emps):
-    for emp in all_emps:
+def parse_employees_and_save_to_db(all_employees):
+    for emp in all_employees:
         sector = "-"
         job_title = emp.get("jobTitle", "")
         if job_title:
