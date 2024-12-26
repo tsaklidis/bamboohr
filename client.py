@@ -1,9 +1,8 @@
 import base64
-from typing import Union, List
+from typing import Union
 
 import requests
-from datetime import date, datetime, timedelta
-
+from datetime import date, timedelta
 
 from settings.vars import debug
 from employees.models import EmployeeActions
@@ -111,7 +110,7 @@ class BambooTimeOff:
 
         return available_employees
 
-    def get_available_employees_v2(self, start:str, end:str, sector=None) -> list:
+    def get_available_employees_no_perms(self, start:str, end:str, sector=None) -> list:
         """
         Get available employees with the use of '/time_off/whos_out/' endpoint.
         This endpoint can show employees without the use of an API key that
@@ -128,9 +127,9 @@ class BambooTimeOff:
             # The database is empty try loading employees from bamboo
             try:
                 emps = self.get_employees_from_bamboo()
-                parse_emps_and_save_to_db(emps.json()['employees'])
+                parse_emps_and_save_to_db(emps)
             except Exception as e:
-                print(e)
+                print(f"Error: {e}")
 
         employees_objs = self.emp_qs.get_employees_excluding_ids(out_employees_ids)
 
