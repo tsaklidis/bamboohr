@@ -1,0 +1,4 @@
+db_name = "the_db.db"
+debug = True
+api_key = "f98b141512faf98b141512faf98b141512fa:random"
+bamboo_domain = "tsaklidis"
