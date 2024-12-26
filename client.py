@@ -2,12 +2,13 @@ import base64
 from typing import Union
 
 import requests
+import time
 from datetime import date, timedelta
 
 from settings.vars import debug
 from employees.models import EmployeeActions
 from helpers import add_params_to_url
-from employees.load_employees_to_db import parse_emps_and_save_to_db
+from employees.load_employees_to_db import parse_employees_and_save_to_db
 
 class BambooTimeOff:
     def __init__(self, token, company_domain):
@@ -25,15 +26,20 @@ class BambooTimeOff:
         response = {}
         if extra_headers:
             headers.update(extra_headers)
+        start_time = time.time()
         if method == "GET":
             response = requests.get(url, headers=headers)
+        else:
+            raise NotImplementedError()
+        end_time = time.time()
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             print(f"Error sending the request for url:{url} exception error:{e}")
             return {}
         if debug:
-            print(f"{method}: {url} - {response.status_code}")
+            execution_time = round((end_time - start_time), 3)
+            print(f"{method}: {url} - {response.status_code} | execution time: {execution_time}s")
         return response
 
     def get_employees_from_bamboo(self):
@@ -127,7 +133,7 @@ class BambooTimeOff:
             # The database is empty try loading employees from bamboo
             try:
                 emps = self.get_employees_from_bamboo()
-                parse_emps_and_save_to_db(emps)
+                parse_employees_and_save_to_db(emps)
             except Exception as e:
                 print(f"Error: {e}")
 
