@@ -8,6 +8,7 @@ SQLModel.metadata.create_all(engine)
 
 
 def parse_employees_and_save_to_db(all_employees):
+    # Internal roles mapping, feel free to change
     for emp in all_employees:
         sector = "-"
         job_title = emp.get("jobTitle", "")
@@ -18,7 +19,9 @@ def parse_employees_and_save_to_db(all_employees):
                 sector = "BE"
             if "QA" in job_title:
                 sector = "QA"
-            if "DevOps" in job_title:
+            if "SMG" in job_title or "Java" in job_title:
+                sector = "SMG"
+            if "DevOps" in job_title or "Ops" in job_title:
                 sector = "DVPS"
 
         tmp_emp = Employee(
