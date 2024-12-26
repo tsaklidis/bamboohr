@@ -1,0 +1,4 @@
+*.db
+settings/vars.py
+.idea
+.DS_Store
