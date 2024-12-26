@@ -1,10 +1,8 @@
-from settings.vars import db_name
-
 from typing import Optional
-from sqlmodel import SQLModel, Field, create_engine, Session, select
+from sqlmodel import SQLModel, Field, Session, select
 from sqlalchemy import not_, func
-from sqlalchemy.orm import sessionmaker
 
+from db.manager import DatabaseManager
 
 
 class Employee(SQLModel, table=True):
@@ -21,11 +19,15 @@ class Employee(SQLModel, table=True):
 
 class EmployeeActions:
     def __init__(self):
-        self.engine = create_engine(f'sqlite:///{db_name}')
-        SQLModel.metadata.create_all(self.engine)
-        self.SessionLocal = sessionmaker(bind=self.engine)
+        # Get the database instance
+        self.engine = DatabaseManager.get_db_instance()
+
+    def _clean_ids(self, ids):
+        return [id for id in ids if id is not None]
+
 
     def get_employees_excluding_ids(self, excluded_ids, only_id=False):
+        excluded_ids = self._clean_ids(excluded_ids)
         with Session(self.engine) as session:
             statement = select(Employee)
             if excluded_ids:
@@ -42,6 +44,7 @@ class EmployeeActions:
             return employees
 
     def get_employees_by_sector_and_id(self, sector, ids):
+        ids = self._clean_ids(ids)
         with Session(self.engine) as session:
             statement = select(Employee).where(Employee.sector == sector).where(
                 Employee.bamboo_id.in_(ids)
@@ -50,6 +53,7 @@ class EmployeeActions:
             return employees
 
     def get_employees_by_ids(self, ids):
+        ids = self._clean_ids(ids)
         with Session(self.engine) as session:
             statement = select(Employee).where(Employee.bamboo_id.in_(ids))
             employees = session.exec(statement).all()
@@ -67,6 +71,7 @@ class EmployeeActions:
             return session.exec(select(func.count(Employee.bamboo_id))).one()
 
     def count_employees_by_sector_and_id(self, sector, ids):
+        ids = self._clean_ids(ids)
         with Session(self.engine) as session:
             statement = select(func.count(Employee.bamboo_id)).where(
                 Employee.sector == sector, Employee.bamboo_id.in_(ids)
