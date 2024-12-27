@@ -5,15 +5,18 @@ import requests
 import time
 from datetime import date, timedelta
 
-from settings.vars import debug
-from employees.models import EmployeeActions
-from helpers import add_params_to_url
 from employees.load_employees_to_db import parse_employees_and_save_to_db
+from employees.models import EmployeeActions, Employee
+from helpers import add_params_to_url
+from settings.vars import debug, api_key, bamboo_domain
 
 class BambooTimeOff:
-    def __init__(self, token, company_domain):
-        self.base_url = f"https://api.bamboohr.com/api/gateway.php/{company_domain}/v1"
-        self.token = token
+    def __init__(self, token=None, company_domain=None):
+        _token = token or api_key
+        _company_domain = bamboo_domain or company_domain
+
+        self.base_url = f"https://api.bamboohr.com/api/gateway.php/{_company_domain}/v1"
+        self.token = f"{_token}:random"
         self.token = base64.b64encode(self.token.encode('utf-8')).decode('utf-8')
         self.headers = {
             "Accept": "application/json",
@@ -21,9 +24,8 @@ class BambooTimeOff:
         }
         self.emp_qs = EmployeeActions()
 
-    def send_request(self, method, url, extra_headers=None):
+    def send_request(self, method:str, url:str, extra_headers=None) -> requests.Response:
         headers = self.headers
-        response = {}
         if extra_headers:
             headers.update(extra_headers)
         start_time = time.time()
@@ -42,7 +44,7 @@ class BambooTimeOff:
             print(f"{method}: {url} - {response.status_code} | execution time: {execution_time}s")
         return response
 
-    def get_employees_from_bamboo(self):
+    def get_employees_from_bamboo(self) -> list[dict]:
         """
         Fetch all employees from BambooHR.
         """
@@ -51,7 +53,7 @@ class BambooTimeOff:
         employees = response.json().get("employees")
         return employees
 
-    def get_time_off(self, start_date, end_date):
+    def get_time_off(self, start_date:str, end_date:str) -> list[dict]:
         """
         Fetch time-off data for the specified date range.
         Attention: Restrictions are applied for Time-Off Data Access.
@@ -79,9 +81,9 @@ class BambooTimeOff:
         response = self.send_request("GET", url)
         return response.json()
 
-    def get_who_is_out_employees(self, start, end, only_ids=False):
+    def get_who_is_out_employees(self, start:str, end:str, only_ids=False) -> (list)[dict]:
         """
-        Get the employees who are out of office for specific date range
+        Get the employees that are out of office for specific date range
         # start - a date in the form YYYY-MM-DD - defaults to the current date.
         # end - a date in the form YYYY-MM-DD - defaults to 14 days from the start date.
         """
@@ -93,7 +95,7 @@ class BambooTimeOff:
             employees = [emp.get("employeeId") for emp in employees]
         return employees
 
-    def get_available_employees(self, start_date, end_date):
+    def get_available_employees(self, start_date:str, end_date:str) -> list[dict]:
         """
         Calculate available employees with the use of '/employees/directory'
         The logic here is:
@@ -175,7 +177,7 @@ class BambooTimeOff:
         Returns:
             list: Returns a list of datetime.date(2024, 12, 23)
             If "return_total" flag is se to True
-                int: The number of working days between the start and end dates.
+            int: The number of working days between the start and end dates.
 
         """
 
