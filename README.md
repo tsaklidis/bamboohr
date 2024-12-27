@@ -6,13 +6,14 @@
 
  This project provides a Python client for interacting with the [BambooHR](https://www.bamboohr.com/) API.
 
- It allows you to view time-off requests, read employees data, time-off requests, and more. <br>
+ It allows you to view time-off requests, read employees data, time-off requests and more. <br>
  The data can be fetched without the use of an API key 
  that is associated with a user who has special permissions.
 
 
 ### ✨ Features ✨
-<hr>
+
+-------------
 
 * **Employees Listing**:
   * Get available employees. A use case could be to calculate sprint capacity.
@@ -27,7 +28,8 @@
 
 
 ### 🔧 Setup
-<hr>
+
+-------------
 
 #### Get a BambooHR API key:
 1. Log in to BambooHR.
@@ -52,7 +54,8 @@ pip install -r requirements.txt
 
 ### 📚 Usage
 More examples can be found under the [examples](examples) directory.
-<hr>
+
+-------------
 
 ```python
 from settings.vars import bamboo_domain, api_key
@@ -79,7 +82,8 @@ def print_some_data():
 ```
 
 ### 📝 Restrictions are applied for Time-Off Data Access 
-<hr>
+
+-------------
 
 >  The API key must be associated with a user who has permission to view time-off requests for all employees in BambooHR.
 > 
