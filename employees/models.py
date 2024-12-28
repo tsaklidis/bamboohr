@@ -52,6 +52,14 @@ class EmployeeActions:
             employees = session.exec(statement).all()
             return employees
 
+    def get_employees_by_sector(self, sector):
+        with Session(self.engine) as session:
+            statement = select(Employee).where(
+                Employee.sector == sector
+            ).where().order_by(Employee.bamboo_id)
+            employees = session.exec(statement).all()
+            return employees
+
     def get_employees_by_ids(self, ids):
         ids = self._clean_ids(ids)
         with Session(self.engine) as session:
