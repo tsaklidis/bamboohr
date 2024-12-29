@@ -5,7 +5,7 @@ from collections import Counter
 
 import requests
 import time
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from employees.load_employees_to_db import parse_employees_and_save_to_db
 from employees.models import EmployeeActions
@@ -59,24 +59,10 @@ class BambooTimeOff:
         employees = response.json().get("employees")
         return employees
 
-    def get_time_off(self, start_date:str, end_date:str) -> list[dict]:
+    def get_time_off(self, start_date: str, end_date: str) -> list[dict]:
         """
         Fetch time-off data for the specified date range.
         Attention: Restrictions are applied for Time-Off Data Access.
-
-        The API key must be associated with a user who has permission to view
-        time-off requests for all employees in BambooHR.This is typically granted
-        by assigning the user a role that includes access to the "Time Off" module in the BambooHR system.
-
-        Admin-Level Access:
-            If you are an administrator or have been granted company-wide access,
-            you can view all time-off requests.
-        Manager Access:
-            If you are a manager, you might only be able to view time-off requests
-             for employees reporting to you, unless explicitly granted wider access.
-        API-Specific Role:
-            Some organizations configure API-specific roles. Ensure the role tied to the API key has permissions to access the time_off/requests endpoint.
-
         """
         url = f"{self.base_url}/time_off/requests"
         params = {
@@ -85,9 +71,10 @@ class BambooTimeOff:
         }
         url = add_params_to_url(url, params)
         response = self.send_request("GET", url)
-        return response.json()
+        time_off_data = response.json()
+        return time_off_data
 
-    def get_who_is_out_employees(self, start:str, end:str, only_ids=False) -> (list)[dict]:
+    def get_who_is_out_employees(self, start: str, end: str, only_ids=False) -> (list)[dict]:
         """
         Get the employees that are out of office for specific date range
         # start - a date in the form YYYY-MM-DD - defaults to the current date.
@@ -216,35 +203,64 @@ class BambooTimeOff:
             sprint_start (str): The start date of the sprint in YYYY-MM-DD format.
             sprint_end (str): The end date of the sprint in YYYY-MM-DD format.
             focus_factor (float, optional): The focus factor to apply to the capacity. Defaults to 0.75.
+            sector (tuple, optional): The sectors to filter employees by.
 
         Returns:
             float: The adjusted sprint capacity in hours.
         """
-
-        # Get the working dates in the sprint
+        # Step 1: Get the working dates within the sprint period
         working_dates = self.get_working_days(sprint_start, sprint_end)
-        working_days_in_sprint = len(working_dates)
         hours_per_day = 8
 
-        if working_days_in_sprint == 0:
-            # Avoid unnecessary calculations if no working days
+        if not working_dates:
+            # Avoid unnecessary calculations if there are no working days
             return 0.0
 
-        # Accumulate available employee IDs across all working days
-        combined_ids = Counter()
-        for working_date in working_dates:
-            date_str = working_date.strftime('%Y-%m-%d')
-            available_emps = self.get_available_employees_no_perms(
-                date_str, date_str, sector=sector
+        working_days_in_sprint = len(working_dates)
+
+        # Step 2: Fetch employees who are out during the sprint period
+        out_employees = self.get_who_is_out_employees(sprint_start, sprint_end)
+
+        # Step 3: Track unavailable days for each employee
+        unavailable_days = {}
+        for record in out_employees:
+            emp_id = record.get('employeeId')
+            if not emp_id:
+                continue
+
+            out_start = date.fromisoformat(record['start'])
+            out_end = date.fromisoformat(record['end'])
+            if emp_id not in unavailable_days:
+                unavailable_days[emp_id] = set()
+
+            # Calculate the intersection of unavailable days and working days
+            unavailable_days[emp_id].update(
+                working_date for working_date in working_dates if out_start <= working_date <= out_end
             )
-            combined_ids.update(emp.bamboo_id for emp in available_emps)
 
-        # Calculate total raw capacity
-        total_raw_capacity = sum(
-            min(count, working_days_in_sprint) * hours_per_day for count in combined_ids.values()
-        )
+        # Step 4: Fetch all employees from BambooHR and filter by sector if needed
+        employees = []
+        for emp in self.get_employees_from_bamboo():
+            emp_id = emp.get('id')
+            if not emp_id:
+                continue
 
-        # Apply focus factor
+            if sector:
+                _emp = self.emp_qs.get_employee_by_id(emp_id)
+                if _emp and _emp.sector in sector:
+                    employees.append(_emp)
+            else:
+                employees.append(emp)
+
+        # Step 5: Calculate total raw capacity
+        total_raw_capacity = 0
+        for emp in employees:
+            emp_id = emp.bamboo_id if sector else emp['id']
+            # Calculate the number of available days for each employee
+            available_days = working_days_in_sprint - len(unavailable_days.get(emp_id, set()))
+            total_raw_capacity += available_days * hours_per_day
+
+        # Step 6: Apply the focus factor
         total_capacity = total_raw_capacity * focus_factor
 
         return total_capacity
