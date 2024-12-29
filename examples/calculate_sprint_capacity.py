@@ -18,6 +18,7 @@ def calculate_capacity_example():
 
     print(f"For the sprint in range {start} and {end}")
     print(f"The capacity is: {capacity} hours")
+    print(f"Teams in the sprint: {sector}")
 
 if __name__ == "__main__":
     calculate_capacity_example()
