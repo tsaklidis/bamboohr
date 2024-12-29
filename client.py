@@ -1,12 +1,14 @@
 import base64
 from typing import Union
+from collections import Counter
+
 
 import requests
 import time
 from datetime import date, timedelta
 
 from employees.load_employees_to_db import parse_employees_and_save_to_db
-from employees.models import EmployeeActions, Employee
+from employees.models import EmployeeActions
 from helpers import add_params_to_url
 from settings.vars import debug, api_key, bamboo_domain
 
@@ -22,26 +24,30 @@ class BambooTimeOff:
             "Accept": "application/json",
             "authorization": "Basic {}".format(self.token)
         }
+        self.session = requests.Session()  # Use session for connection reuse
         self.emp_qs = EmployeeActions()
 
-    def send_request(self, method:str, url:str, extra_headers=None) -> requests.Response:
-        headers = self.headers
+    def send_request(self, method: str, url: str, extra_headers=None) -> Union[None, requests.Response]:
+        headers = self.headers.copy()  # Avoid modifying original headers
         if extra_headers:
             headers.update(extra_headers)
+
         start_time = time.time()
-        if method == "GET":
-            response = requests.get(url, headers=headers)
-        else:
-            raise NotImplementedError()
-        end_time = time.time()
         try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            print(f"Error sending the request for url:{url} exception error:{e}")
-            return {}
+            if method == "GET":
+                response = self.session.get(url, headers=headers, timeout=10)  # Add a timeout for robustness
+            else:
+                raise NotImplementedError(f"Method {method} is not implemented.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending the request for URL: {url} - Exception: {e}")
+            return None
+
+        end_time = time.time()
+
         if debug:
             execution_time = round((end_time - start_time), 3)
-            print(f"{method}: {url} - {response.status_code} | execution time: {execution_time}s")
+            print(f"{method}: {url} - {response.status_code} | Execution time: {execution_time}s")
+
         return response
 
     def get_employees_from_bamboo(self) -> list[dict]:
@@ -95,7 +101,7 @@ class BambooTimeOff:
             employees = [emp.get("employeeId") for emp in employees]
         return employees
 
-    def get_available_employees(self, start_date:str, end_date:str) -> list[dict]:
+    def get_available_employees(self, start_date:str, end_date:str,  only_ids=False) -> list[dict]:
         """
         Calculate available employees with the use of '/employees/directory'
         The logic here is:
@@ -112,9 +118,14 @@ class BambooTimeOff:
             if request.get("status", {}).get("id") == "approved":
                 unavailable_employee_ids.add(request["employeeId"])
 
-        available_employees = [
-            emp for emp in employees if emp["id"] not in unavailable_employee_ids
-        ]
+        if only_ids:
+            available_employees = [
+                emp["id"] for emp in employees if emp["id"] not in unavailable_employee_ids
+            ]
+        else:
+            available_employees = [
+                emp for emp in employees if emp["id"] not in unavailable_employee_ids
+            ]
 
         return available_employees
 
@@ -141,7 +152,7 @@ class BambooTimeOff:
 
         employees_objs = self.emp_qs.get_employees_excluding_ids(out_employees_ids)
 
-        if sector and isinstance(sector, tuple):
+        if sector is not None and isinstance(sector, tuple):
             employees_objs_filtered = []
             for emp in employees_objs:
                 if emp.sector in sector:
@@ -196,5 +207,3 @@ class BambooTimeOff:
         if return_total:
             return len(working_dates)
         return working_dates
-
-
