@@ -39,14 +39,14 @@ class BambooTimeOff:
             else:
                 raise NotImplementedError(f"Method {method} is not implemented.")
         except requests.exceptions.RequestException as e:
-            print(f"Error sending the request for URL: {url} - Exception: {e}")
+            print(f"[E] Error sending the request for URL: {url} - Exception: {e}")
             return None
 
         end_time = time.time()
 
         if debug:
             execution_time = round((end_time - start_time), 3)
-            print(f"{method}: {url} - {response.status_code} | Execution time: {execution_time}s")
+            print(f"[i] {method}: {url} - {response.status_code} | Execution time: {execution_time}s")
 
         return response
 
@@ -207,3 +207,44 @@ class BambooTimeOff:
         if return_total:
             return len(working_dates)
         return working_dates
+
+    def calculate_capacity(self, sprint_start, sprint_end, focus_factor=0.75, sector=None) -> float:
+        """
+        Calculates the sprint capacity of a team.
+
+        Args:
+            sprint_start (str): The start date of the sprint in YYYY-MM-DD format.
+            sprint_end (str): The end date of the sprint in YYYY-MM-DD format.
+            focus_factor (float, optional): The focus factor to apply to the capacity. Defaults to 0.75.
+
+        Returns:
+            float: The adjusted sprint capacity in hours.
+        """
+
+        # Get the working dates in the sprint
+        working_dates = self.get_working_days(sprint_start, sprint_end)
+        working_days_in_sprint = len(working_dates)
+        hours_per_day = 8
+
+        if working_days_in_sprint == 0:
+            # Avoid unnecessary calculations if no working days
+            return 0.0
+
+        # Accumulate available employee IDs across all working days
+        combined_ids = Counter()
+        for working_date in working_dates:
+            date_str = working_date.strftime('%Y-%m-%d')
+            available_emps = self.get_available_employees_no_perms(
+                date_str, date_str, sector=sector
+            )
+            combined_ids.update(emp.bamboo_id for emp in available_emps)
+
+        # Calculate total raw capacity
+        total_raw_capacity = sum(
+            min(count, working_days_in_sprint) * hours_per_day for count in combined_ids.values()
+        )
+
+        # Apply focus factor
+        total_capacity = total_raw_capacity * focus_factor
+
+        return total_capacity

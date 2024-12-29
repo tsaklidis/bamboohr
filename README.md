@@ -6,7 +6,8 @@
 
  This project provides a Python client for interacting with the [BambooHR](https://www.bamboohr.com/) API.
 
- It allows you to view time-off requests, read employees data, time-off requests and more. <br>
+ It allows you calculate the sprint capacity, view time-off requests, read 
+ employees data, time-off requests and more (check features section). <br>
  The data can be fetched without the use of an API key 
  that is associated with a user who has special permissions.
 
@@ -16,6 +17,8 @@
 -------------
 
 * **Employees Listing**:
+  * Calculate sprint capacity. The capacity is the number of employees available to work on a 
+    specific date range.
   * Get available employees. A use case could be to calculate sprint capacity.
   * Fetch all company's employees from BambooHR including bamboo ID, 
     names, job title, phone number and photo url.

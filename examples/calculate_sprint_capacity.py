@@ -1,28 +1,23 @@
 from settings.vars import bamboo_domain, api_key
 from client import BambooTimeOff
+from helpers import timer
 
-def print_emps(emps):
-    for emp in emps:
-        print(f"{emp.display_name} - {emp.job_title} | {emp.sector}")
 
-if __name__ == "__main__":
+@timer
+def calculate_capacity_example():
     bamboo = BambooTimeOff(api_key, bamboo_domain)
-    start = "2024-12-10"
-    end = "2024-12-10"
+    start = "2024-12-23"
+    end = "2024-12-29"
 
-    print("Using method without special permissions")
-    employees = bamboo.get_available_employees_no_perms(start, end)
-    be_employees = bamboo.get_available_employees_no_perms(
-        start, end, sector=("BE",)
+    # The "sector" used, is a mapping that can be found in "employees/load_employees_to_db.py"
+    # It is used for the purpose of the project and can be changed/avoided
+    sector = ("BE", "QA", "FE")
+    capacity = bamboo.calculate_capacity(
+        start, end, sector=sector
     )
 
-    print(f"For the range between {start} and {end}")
-    print(f"The following {len(employees)} employees are available:")
-    print_emps(employees)
+    print(f"For the sprint in range {start} and {end}")
+    print(f"The capacity is: {capacity} hours")
 
-
-    print(100*"#")
-    print("For the backend issues the following employees are available:")
-    print_emps(be_employees)
-
-
+if __name__ == "__main__":
+    calculate_capacity_example()
