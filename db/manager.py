@@ -26,9 +26,3 @@ class DatabaseManager:
     def get_session(self):
         engine = self.get_db_instance()
         return Session(engine)
-
-    @classmethod
-    def execute_query(self, query):
-        with self.get_session() as session:
-            result = session.exec(query)
-            return result.all()
