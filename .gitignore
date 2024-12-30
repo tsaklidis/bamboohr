@@ -1,4 +1,5 @@
 *.db
+*.pyc
 settings/vars.py
 .idea
 .DS_Store
