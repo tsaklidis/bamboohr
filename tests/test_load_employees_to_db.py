@@ -15,7 +15,6 @@ class TestLoadEmployeesToDB(unittest.TestCase):
 
     def setUp(self):
         # Ensure the database is clean before each test
-        print("Setting up the test case. Cleaning the database.")
         with Session(self.engine) as session:
             session.execute(text("DELETE FROM employees"))
             session.commit()
@@ -24,7 +23,6 @@ class TestLoadEmployeesToDB(unittest.TestCase):
         with Session(self.engine) as session:
             result = session.execute(text("SELECT * FROM employees"))
             employees = result.fetchall()
-            print(f"Number of employees after cleanup: {len(employees)}")
             assert len(employees) == 0
 
     def generate_random_string(self, length=10):
@@ -58,7 +56,6 @@ class TestLoadEmployeesToDB(unittest.TestCase):
         with Session(self.engine) as session:
             result = session.execute(text("SELECT * FROM employees"))
             employees = result.fetchall()
-            print(f"Number of employees after insert: {len(employees)}")
             self.assertEqual(len(employees), 1)
 
 if __name__ == '__main__':

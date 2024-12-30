@@ -18,14 +18,48 @@ class Employee(SQLModel, table=True):
 
 
 class EmployeeActions:
-    def __init__(self):
+    def __init__(self, engine=None):
         # Get the database instance
-        self.engine = DatabaseManager.get_db_instance()
+        self.engine = engine or DatabaseManager.get_db_instance()
 
     def _clean_ids(self, ids):
         return [id for id in ids if id is not None]
 
+    def add_employee(self, employee_data):
+        with Session(self.engine) as session:
+            employee = Employee(**employee_data)
+            session.add(employee)
+            session.commit()
+            return employee
 
+    def get_employee(self, bamboo_id):
+        with Session(self.engine) as session:
+            statement = select(Employee).where(Employee.bamboo_id == bamboo_id)
+            result = session.execute(statement)
+            return result.scalar_one_or_none()
+
+    def update_employee(self, bamboo_id, update_data):
+        with Session(self.engine) as session:
+            statement = select(Employee).where(Employee.bamboo_id == bamboo_id)
+            result = session.execute(statement)
+            employee = result.scalar_one_or_none()
+            if employee:
+                for key, value in update_data.items():
+                    setattr(employee, key, value)
+                session.commit()
+                return employee
+            return None
+
+    def delete_employee(self, bamboo_id):
+        with Session(self.engine) as session:
+            statement = select(Employee).where(Employee.bamboo_id == bamboo_id)
+            result = session.execute(statement)
+            employee = result.scalar_one_or_none()
+            if employee:
+                session.delete(employee)
+                session.commit()
+                return True
+            return False
     def get_employees_excluding_ids(self, excluded_ids, only_id=False):
         excluded_ids = self._clean_ids(excluded_ids)
         with Session(self.engine) as session:

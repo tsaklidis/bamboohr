@@ -1,15 +1,14 @@
 import base64
 from typing import Union
-from collections import Counter
 
 
 import requests
 import time
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 
 from employees.load_employees_to_db import parse_employees_and_save_to_db
 from employees.models import EmployeeActions
-from helpers import add_params_to_url
+from helpers.helpers import add_params_to_url
 from settings.vars import debug, api_key, bamboo_domain
 
 class BambooTimeOff:
