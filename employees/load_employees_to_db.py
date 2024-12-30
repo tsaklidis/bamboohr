@@ -1,13 +1,12 @@
-from settings.vars import db_name
 from sqlmodel import Session, SQLModel, create_engine
 from employees.models import Employee
+from settings.vars import db_name
 
-# Database setup
-engine = create_engine(f'sqlite:///../{db_name}')
-SQLModel.metadata.create_all(engine)
+# Default database setup
+default_engine = create_engine(f'sqlite:///../{db_name}')
+SQLModel.metadata.create_all(default_engine)
 
-
-def parse_employees_and_save_to_db(all_employees):
+def parse_employees_and_save_to_db(all_employees, engine=default_engine):
     # Internal roles mapping, feel free to change
     for emp in all_employees:
         sector = "-"
