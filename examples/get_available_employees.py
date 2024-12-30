@@ -7,13 +7,13 @@ def print_emps(emps):
 
 if __name__ == "__main__":
     bamboo = BambooTimeOff(api_key, bamboo_domain)
-    start = "2024-12-10"
-    end = "2024-12-10"
+    start = "2024-12-30"
+    end = "2024-12-30"
 
     print("Using method without special permissions")
     employees = bamboo.get_available_employees_no_perms(start, end)
     be_employees = bamboo.get_available_employees_no_perms(
-        start, end, sector=("BE",)
+        start, end, sector=("BE", "FE", "QA")
     )
 
     print(f"For the range between {start} and {end}")
