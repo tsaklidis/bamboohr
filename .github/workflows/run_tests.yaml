@@ -28,6 +28,9 @@ jobs:
           pip install -r requirements.txt
           pip install coverage pytest
 
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
       - name: Run tests
         run: |
           python -m unittest discover -s tests
