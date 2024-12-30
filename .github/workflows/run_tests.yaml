@@ -28,8 +28,10 @@ jobs:
           pip install -r requirements.txt
           pip install coverage pytest
 
-      - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Set PYTHONPATH and vars.py
+        run: |
+          echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          mv settings/vars.py.example settings/vars.py
 
       - name: Run tests
         run: |
