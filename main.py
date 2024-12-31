@@ -113,7 +113,11 @@ if __name__ == "__main__":
                 sector = tuple(sector.split(","))
                 capacity = calculate_capacity(bamboo, start, end, sector, float(focus_factor))
 
+                print("=================")
+                print("|    Results    |")
+                print("=================")
                 print(f"Sprint capacity: {capacity} hours")
+                print("-" * 53)
 
             elif option == "2":
                 employees = bamboo.get_available_employees_no_perms(today, today)
