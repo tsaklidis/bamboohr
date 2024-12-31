@@ -91,6 +91,8 @@ if __name__ == "__main__":
             api_key = input("Enter your API key: ").strip()
             bamboo_domain = input("Enter your Bamboo domain: ").strip()
             write_config(api_key, bamboo_domain)
+            print("First time setup completed. Getting initial data from BambooHR...")
+            print("-" * 53)
 
         bamboo = BambooTimeOff(api_key, bamboo_domain)
         logging.info("BambooTimeOff client initialized")
