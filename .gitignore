@@ -5,3 +5,5 @@ settings/vars.py
 .idea
 .DS_Store
 __pycache__
+dist
+build
