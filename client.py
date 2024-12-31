@@ -1,6 +1,6 @@
 import base64
+import logging
 from typing import Union
-
 
 import requests
 import time
@@ -10,6 +10,14 @@ from employees.load_employees_to_db import parse_employees_and_save_to_db
 from employees.models import EmployeeActions
 from helpers.helpers import add_params_to_url
 from settings.vars import debug, api_key, bamboo_domain
+
+# Set up logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename='client.log',
+    filemode='w',
+    format='%(name)s - %(levelname)s - %(message)s'
+)
 
 class BambooTimeOff:
     def __init__(self, token=None, company_domain=None):
@@ -23,18 +31,26 @@ class BambooTimeOff:
             "Accept": "application/json",
             "authorization": "Basic {}".format(self.token)
         }
-        self.session = requests.Session()  # Use session for connection reuse
+        # Use session for connection reuse
+        self.session = requests.Session()
         self.emp_qs = EmployeeActions()
 
+        if self.emp_qs.count_all_available_employees() == 0:
+            try:
+                emps = self.get_employees_from_bamboo()
+                parse_employees_and_save_to_db(emps)
+            except Exception as e:
+                logging.error(f"Error: {e}")
+
     def send_request(self, method: str, url: str, extra_headers=None) -> Union[None, requests.Response]:
-        headers = self.headers.copy()  # Avoid modifying original headers
+        headers = self.headers.copy()
         if extra_headers:
             headers.update(extra_headers)
 
         start_time = time.time()
         try:
             if method == "GET":
-                response = self.session.get(url, headers=headers, timeout=10)  # Add a timeout for robustness
+                response = self.session.get(url, headers=headers, timeout=10)
             else:
                 raise NotImplementedError(f"Method {method} is not implemented.")
         except requests.exceptions.RequestException as e:
@@ -46,7 +62,7 @@ class BambooTimeOff:
         if debug:
             execution_time = round((end_time - start_time), 3)
             print(f"[i] {method}: {url} - {response.status_code} | Execution time: {execution_time}s")
-
+        response.raise_for_status()
         return response
 
     def get_employees_from_bamboo(self) -> list[dict]:
