@@ -1,6 +1,8 @@
 *.db
 *.pyc
 *.log
+*.spec
+*.egg-info
 settings/vars.py
 .idea
 .DS_Store
