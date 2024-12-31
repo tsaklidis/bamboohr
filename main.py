@@ -64,7 +64,11 @@ def print_emps(employees):
 
     # Print employee data
     for emp in employees:
-        row = f"{emp.display_name:<{name_width}} | {emp.job_title:<{title_width}} | {emp.sector:<{sector_width}}"
+        display_name = emp.display_name or "-"
+        job_title = emp.job_title or "-"
+        sector = emp.sector or "-"
+
+        row = f"{display_name:<{name_width}} | {job_title:<{title_width}} | {sector:<{sector_width}}"
         print(row)
         print("-" * (name_width + title_width + sector_width + 6))
 
