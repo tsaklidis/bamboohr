@@ -5,7 +5,6 @@ from datetime import datetime
 
 from settings.vars import bamboo_domain, api_key
 from client import BambooTimeOff
-from helpers.helpers import timer
 
 # Set up logging
 logging.basicConfig(
@@ -34,7 +33,6 @@ def write_config(api_key, bamboo_domain):
     with open(CONFIG_FILE, 'w') as file:
         json.dump(config, file, indent=4)
 
-@timer
 def calculate_capacity(client, start, end, sector, focus_factor):
     try:
         capacity = client.calculate_capacity(start, end, focus_factor, sector=sector)
