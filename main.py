@@ -1,4 +1,6 @@
 import logging
+import os
+import json
 from datetime import datetime
 
 from settings.vars import bamboo_domain, api_key
@@ -12,6 +14,25 @@ logging.basicConfig(
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s'
 )
+
+CONFIG_FILE = 'config.json'
+
+def read_config():
+    """Reads the api_key and bamboo_domain from the JSON config file if it exists."""
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as file:
+            config = json.load(file)
+            return config.get('api_key'), config.get('bamboo_domain')
+    return None, None
+
+def write_config(api_key, bamboo_domain):
+    """Writes the api_key and bamboo_domain to the JSON config file."""
+    config = {
+        'api_key': api_key,
+        'bamboo_domain': bamboo_domain
+    }
+    with open(CONFIG_FILE, 'w') as file:
+        json.dump(config, file, indent=4)
 
 @timer
 def calculate_capacity(client, start, end, sector, focus_factor):
@@ -60,6 +81,16 @@ def main_menu():
 if __name__ == "__main__":
     logging.info("Application started")
     try:
+        # Read API key and domain from config file
+        api_key, bamboo_domain = read_config()
+
+        # If not found, ask user and save to config file
+        if not api_key or not bamboo_domain:
+            print("API key and Bamboo domain not found in config file.")
+            api_key = input("Enter your API key: ").strip()
+            bamboo_domain = input("Enter your Bamboo domain: ").strip()
+            write_config(api_key, bamboo_domain)
+
         welcome_screen()
         bamboo = BambooTimeOff(api_key, bamboo_domain)
         logging.info("BambooTimeOff client initialized")
