@@ -80,6 +80,7 @@ def main_menu():
 
 if __name__ == "__main__":
     logging.info("Application started")
+    welcome_screen()
     try:
         # Read API key and domain from config file
         api_key, bamboo_domain = read_config()
@@ -91,12 +92,12 @@ if __name__ == "__main__":
             bamboo_domain = input("Enter your Bamboo domain: ").strip()
             write_config(api_key, bamboo_domain)
 
-        welcome_screen()
         bamboo = BambooTimeOff(api_key, bamboo_domain)
         logging.info("BambooTimeOff client initialized")
 
         while True:
             main_menu()
+            today = datetime.now().strftime("%Y-%m-%d")
             option = input("Pick one option: ").strip()
 
             if option == "1":
@@ -104,18 +105,17 @@ if __name__ == "__main__":
                 end = input("Enter end date (YYYY-MM-DD): ").strip()
                 sector = input("Enter sector(s) (BE, FE, QA separated by commas): ").strip()
                 focus_factor = input("Enter focus factor (0.75-1.00): ").strip()
+
                 sector = tuple(sector.split(","))
                 capacity = calculate_capacity(bamboo, start, end, sector, float(focus_factor))
-                if capacity is not None:
-                    print(f"Sprint capacity: {capacity} hours")
+
+                print(f"Sprint capacity: {capacity} hours")
 
             elif option == "2":
-                today = datetime.now().strftime("%Y-%m-%d")
                 employees = bamboo.get_available_employees_no_perms(today, today)
                 print_emps(employees)
 
             elif option == "3":
-                today = datetime.now().strftime("%Y-%m-%d")
                 employees = bamboo.get_who_is_out_employees(today, today)
                 print_emps(employees)
 

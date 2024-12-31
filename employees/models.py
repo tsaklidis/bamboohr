@@ -13,8 +13,8 @@ class Employee(SQLModel, table=True):
     display_name: str
     job_title: Optional[str] = Field(default=None)
     mobile_phone: Optional[str] = Field(default=None)
-    photo_url: str
-    sector: str
+    photo_url: Optional[str] = Field(default=None)
+    sector: Optional[str] = Field(default=None)
 
 
 class EmployeeActions:
