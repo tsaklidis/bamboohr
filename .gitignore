@@ -3,6 +3,7 @@
 *.log
 *.spec
 *.egg-info
+config.json
 settings/vars.py
 .idea
 .DS_Store
