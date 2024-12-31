@@ -26,8 +26,5 @@ class TestHelpers(unittest.TestCase):
         result = add_params_to_url(url, params)
         self.assertIn(result, [expected_url, expected_url_without_slash])
 
-    def test_timer_decorator(self):
-        self.assertEqual(True, True)
-
 if __name__ == '__main__':
     unittest.main()

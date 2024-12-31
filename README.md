@@ -12,7 +12,7 @@
  that is associated with a user who has special permissions.
 
 
-### ✨ Features ✨
+### ✨Features ✨
 
 -------------
 
@@ -37,7 +37,7 @@ Teams in the sprint: ('BE', 'QA', 'FE')
 [i] calculate_capacity_example() | Execution time: 2.93s
 ```
 
-### 🔧 Setup
+### 🔧Setup
 
 -------------
 
@@ -62,7 +62,7 @@ Using a virtual environment is recommended.
 pip install -r requirements.txt
 ```
 
-### 📚 Usage
+### 📚Usage
 More examples can be found under the [examples](examples) directory.
 
 -------------
@@ -91,7 +91,7 @@ def print_some_data():
         print(f"{emp.display_name} - {emp.job_title} | {emp.sector}")
 ```
 
-### 📝 Restrictions are applied for Time-Off Data Access 
+### 📝Restrictions are applied for Time-Off Data Access 
 
 -------------
 

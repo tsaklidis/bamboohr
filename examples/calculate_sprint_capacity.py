@@ -1,9 +1,8 @@
 from settings.vars import bamboo_domain, api_key
 from client import BambooTimeOff
-from helpers.helpers import timer
 
 
-@timer
+
 def calculate_capacity_example():
     bamboo = BambooTimeOff(api_key, bamboo_domain)
     start = "2024-12-23"
