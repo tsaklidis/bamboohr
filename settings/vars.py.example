@@ -1,5 +1,5 @@
 db_name = "the_db.db"
 db_test_name = "test_db.db"
-debug = True
-api_key = "f98b141512faf98b141512faf98b141512fa:random"
+debug = False
+api_key = "the_key_goes_here"
 bamboo_domain = "tsaklidis"
