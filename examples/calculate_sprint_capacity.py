@@ -5,8 +5,8 @@ from client import BambooTimeOff
 
 def calculate_capacity_example():
     bamboo = BambooTimeOff(api_key, bamboo_domain)
-    start = "2024-12-23"
-    end = "2024-12-29"
+    start = "2025-01-07"
+    end = "2025-01-17"
 
     # The "sector" used, is a mapping that can be found in "employees/load_employees_to_db.py"
     # It is used for the purpose of the project and can be changed/avoided
