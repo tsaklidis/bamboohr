@@ -28,7 +28,7 @@
   * Calculate the number of working days between two dates. Working days 
     are considered to be Monday through Friday, excluding weekends and company 
     holidays.
-* **Sample output**:
+* **Sample outputs**:
 ```text
 For the sprint in range 2024-12-23 and 2024-12-29
 The capacity is: 240.0 hours
@@ -36,6 +36,9 @@ Teams in the sprint: ('BE', 'QA', 'FE')
 
 [i] calculate_capacity_example() | Execution time: 2.93s
 ```
+
+![sample](https://github.com/tsaklidis/bamboohr/blob/master/examples/sample.jpg?raw=true)
+
 
 ### 🔧Setup
 
