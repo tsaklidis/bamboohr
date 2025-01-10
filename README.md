@@ -1,7 +1,8 @@
 # BambooHR API Client
 [![python](https://img.shields.io/badge/python-3.9-blue)](https://www.python.org/)
 [![db](https://img.shields.io/badge/db-sqlmodel-7e56c2)](https://sqlmodel.tiangolo.com/)
-![Codecov](https://img.shields.io/codecov/c/github/tsaklidis/bamboohr)
+![Codecov](https://img.shields.io/codecov/c/github/tsaklidis/bamboohr?logo=codecov)
+
 [![api](https://img.shields.io/badge/BambooHR-v1-73c41d)](https://documentation.bamboohr.com/docs/getting-started)
 
 
