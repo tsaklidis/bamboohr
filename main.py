@@ -46,7 +46,7 @@ def welcome_screen():
 =====================================================
 |                  BambooHR Client                  |
 =====================================================
-| Version:   v1.3                                   |
+| Version:   v1.4                                   |
 | Developer: Stefanos I. Tsaklidis                  |
 =====================================================
 """
@@ -54,21 +54,23 @@ def welcome_screen():
 
 def print_emps(employees):
     name_width = 32
-    title_width = 37
-    sector_width = 10
+    title_width = 43
+    sector_width = 13
+    id_width = 5
 
     # Print header
-    header = f"{'Name':<{name_width}} | {'Job Title':<{title_width}} | {'Sector':<{sector_width}}"
+    header = f"{'ID':<{id_width}} | {'Name':<{name_width}} | {'Job Title':<{title_width}} | {'Sector':<{sector_width}}"
     print(header)
     print("=" * (name_width + title_width + sector_width + 6))
 
     # Print employee data
     for emp in employees:
+        bamboo_id = emp.bamboo_id or "-"
         display_name = emp.display_name or "-"
         job_title = emp.job_title or "-"
         sector = emp.sector or "-"
 
-        row = f"{display_name:<{name_width}} | {job_title:<{title_width}} | {sector:<{sector_width}}"
+        row = f"{bamboo_id:<{id_width}} | {display_name:<{name_width}} | {job_title:<{title_width}} | {sector:<{sector_width}}"
         print(row)
         print("-" * (name_width + title_width + sector_width + 6))
 
@@ -107,11 +109,29 @@ if __name__ == "__main__":
             if option == "1":
                 start = input("Enter start date (YYYY-MM-DD): ").strip()
                 end = input("Enter end date (YYYY-MM-DD): ").strip()
-                sector = input("Enter sector(s) (BE, FE, QA separated by commas): ").strip()
                 focus_factor = input("Enter focus factor (0.75-1.00): ").strip()
 
-                sector = tuple(sector.split(","))
-                capacity = calculate_capacity(bamboo, start, end, sector, float(focus_factor))
+                mode = input("Select employees by: IDs or SECTOR?: ").strip()
+                if mode.lower() == "ids":
+                    available_emps = bamboo.get_available_employees_no_perms(
+                        start, end, sector=("BE", "FE", "QA")
+                    )
+                    print_emps(available_emps)
+                    print("=========================================================")
+                    print("|   Capacity calculation by selecting employees mode    |")
+                    print("=========================================================")
+                    ids = input("Enter IDs, separated by commas: ").strip().replace(" ", "")
+                    ids = ids.split(",")
+                    capacity = calculate_capacity(
+                        bamboo, start, end, ids, float(focus_factor)
+                    )
+                else:
+                    print("=========================================================")
+                    print("| Capacity calculation by selecting employees by sector |")
+                    print("=========================================================")
+                    sector = input("Enter sector(s) (BE, FE, QA, separated by commas): ").strip()
+                    sector = tuple(sector.split(","))
+                    capacity = calculate_capacity(bamboo, start, end, sector, float(focus_factor))
 
                 print("=================")
                 print("|    Results    |")

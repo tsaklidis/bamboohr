@@ -16,6 +16,12 @@ class Employee(SQLModel, table=True):
     photo_url: Optional[str] = Field(default=None)
     sector: Optional[str] = Field(default=None)
 
+    # Set default ordering by 'sector' column
+    __table_args__ = (
+        None,
+        {"order_by": "sector"}
+    )
+
 
 class EmployeeActions:
     def __init__(self, engine=None):
@@ -65,7 +71,8 @@ class EmployeeActions:
         with Session(self.engine) as session:
             statement = select(Employee)
             if excluded_ids:
-                statement = statement.where(not_(Employee.bamboo_id.in_(excluded_ids)))
+                statement = statement.where(not_(Employee.bamboo_id.in_(
+                    excluded_ids))).order_by("sector")
             employees = session.exec(statement).all()
 
         return [emp.bamboo_id for emp in employees] if only_id else employees

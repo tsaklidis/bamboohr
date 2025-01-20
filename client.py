@@ -260,12 +260,16 @@ class BambooTimeOff:
             if not emp_id:
                 continue
 
-            if sector:
+            if sector and isinstance(sector, tuple):
                 _emp = self.emp_qs.get_employee_by_id(emp_id)
                 if _emp and _emp.sector in sector:
                     employees.append(_emp)
             else:
                 employees.append(emp)
+
+        if isinstance(sector, list):
+            # Specific employees IDs provided, get them only.
+            employees = self.emp_qs.get_employees_by_ids(sector)
 
         # Step 5: Calculate total raw capacity
         total_raw_capacity = 0
