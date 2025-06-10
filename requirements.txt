@@ -4,7 +4,7 @@ charset-normalizer==3.4.0
 idna==3.10
 pydantic==2.10.4
 pydantic_core==2.27.2
-requests==2.32.3
+requests==2.32.4
 SQLAlchemy==2.0.36
 sqlmodel==0.0.22
 typing_extensions==4.12.2
