@@ -8,4 +8,4 @@ requests==2.32.3
 SQLAlchemy==2.0.36
 sqlmodel==0.0.22
 typing_extensions==4.12.2
-urllib3==1.26.20
+urllib3==2.5.0
