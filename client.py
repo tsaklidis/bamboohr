@@ -115,6 +115,39 @@ class BambooTimeOff:
                 employees = [emp.get("employeeId") for emp in employees]
         return employees
 
+    @staticmethod
+    def extract_holiday_dates(raw_whos_out):
+        """
+        Extract all holiday dates from the raw /time_off/whos_out/ response.
+        Holiday entries may span multiple days, so we expand them.
+        Returns a set of date objects.
+        """
+        holidays = set()
+        for item in raw_whos_out:
+            if item.get("type") == "holiday":
+                h_start = date.fromisoformat(item["start"])
+                h_end = date.fromisoformat(item.get("end", item["start"]))
+                current = h_start
+                while current <= h_end:
+                    holidays.add(current)
+                    current += timedelta(days=1)
+        return holidays
+
+    @staticmethod
+    def get_out_ids_for_date(raw_whos_out, target_date):
+        """
+        From the raw who's-out response, return the set of employeeIds
+        whose time-off overlaps target_date.
+        """
+        out_ids = set()
+        for item in raw_whos_out:
+            if item.get("type") != "holiday" and item.get("employeeId"):
+                item_start = date.fromisoformat(item["start"])
+                item_end = date.fromisoformat(item.get("end", item["start"]))
+                if item_start <= target_date <= item_end:
+                    out_ids.add(item["employeeId"])
+        return out_ids
+
     def get_available_employees(self, start_date:str, end_date:str,  only_ids=False) -> list[dict]:
         """
         Calculate available employees with the use of '/employees/directory'
