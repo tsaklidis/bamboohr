@@ -94,13 +94,25 @@ class BambooTimeOff:
         Get the employees that are out of office for specific date range
         # start - a date in the form YYYY-MM-DD - defaults to the current date.
         # end - a date in the form YYYY-MM-DD - defaults to 14 days from the start date.
+        Note: The BambooHR /time_off/whos_out/ endpoint returns both individual
+        time-off entries (with employeeId) and company-wide holiday entries
+        (type "holiday", without employeeId). On holidays, ALL employees are
+        considered out of office.
         """
         url = f"{self.base_url}/time_off/whos_out/"
         url = add_params_to_url(url, {"start": start, "end": end})
         rsp = self.send_request("GET", url)
         employees = rsp.json()
         if only_ids:
-            employees = [emp.get("employeeId") for emp in employees]
+            has_holiday = any(
+                item.get("type") == "holiday" for item in employees
+            )
+            if has_holiday:
+                # On company holidays all employees are out of office
+                all_employees = self.emp_qs.get_all_employees()
+                employees = [emp.bamboo_id for emp in all_employees]
+            else:
+                employees = [emp.get("employeeId") for emp in employees]
         return employees
 
     def get_available_employees(self, start_date:str, end_date:str,  only_ids=False) -> list[dict]:

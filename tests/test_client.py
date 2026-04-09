@@ -206,5 +206,50 @@ class TestBambooTimeOff(unittest.TestCase):
         self.assertIn(2, available_employee_ids)
 
 
+    @patch('client.requests.Session.get')
+    @patch('client.EmployeeActions.get_all_employees')
+    def test_get_who_is_out_employees_with_holiday_only_ids(
+            self, mock_get_all_employees, mock_get
+    ):
+        """
+        When the API returns a holiday entry and only_ids=True,
+        ALL employees should be returned as out of office.
+        """
+        mock_response = MagicMock()
+        mock_response.json.return_value = [
+            {"type": "holiday", "name": "Easter Monday", "start": "2026-04-13", "end": "2026-04-13"},
+            {"type": "timeOff", "employeeId": 5, "start": "2026-04-13", "end": "2026-04-13"},
+        ]
+        mock_get.return_value = mock_response
+
+        # Simulate all employees in the DB
+        emp1 = MagicMock()
+        emp1.bamboo_id = 1
+        emp2 = MagicMock()
+        emp2.bamboo_id = 5
+        emp3 = MagicMock()
+        emp3.bamboo_id = 10
+        mock_get_all_employees.return_value = [emp1, emp2, emp3]
+
+        result = self.bamboo.get_who_is_out_employees('2026-04-13', '2026-04-13', only_ids=True)
+        self.assertEqual(sorted(result), [1, 5, 10])
+
+    @patch('client.requests.Session.get')
+    def test_get_who_is_out_employees_no_holiday_only_ids(self, mock_get):
+        """
+        When the API returns no holiday entry and only_ids=True,
+        only the individual employeeIds should be returned.
+        """
+        mock_response = MagicMock()
+        mock_response.json.return_value = [
+            {"type": "timeOff", "employeeId": 5, "start": "2026-04-10", "end": "2026-04-10"},
+            {"type": "timeOff", "employeeId": 8, "start": "2026-04-10", "end": "2026-04-10"},
+        ]
+        mock_get.return_value = mock_response
+
+        result = self.bamboo.get_who_is_out_employees('2026-04-10', '2026-04-10', only_ids=True)
+        self.assertEqual(sorted(result), [5, 8])
+
+
 if __name__ == '__main__':
     unittest.main()

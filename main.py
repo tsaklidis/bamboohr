@@ -79,7 +79,8 @@ def main_menu():
     print("2. Who is available today")
     print("3. Who is out of office today")
     print("4. Get available employees for date range")
-    print("5. Exit")
+    print("5. Who is out of office for date range")
+    print("6. Exit")
     print("-" * 53)
 
 if __name__ == "__main__":
@@ -144,8 +145,9 @@ if __name__ == "__main__":
                 print_emps(employees)
 
             elif option == "3":
-                employees = bamboo.get_who_is_out_employees(today, today)
-                print_emps(employees)
+                employees = bamboo.get_who_is_out_employees(today, today, only_ids=True)
+                db_employees = bamboo.emp_qs.get_employees_by_ids(employees)
+                print_emps(db_employees)
 
             elif option == "4":
                 start = input("Enter start date (YYYY-MM-DD): ").strip()
@@ -154,6 +156,16 @@ if __name__ == "__main__":
                 print_emps(employees)
 
             elif option == "5":
+                start = input("Enter start date (YYYY-MM-DD): ").strip()
+                end = input("Enter end date (YYYY-MM-DD): ").strip()
+                employees = bamboo.get_who_is_out_employees(start, end, only_ids=True)
+                if employees:
+                    db_employees = bamboo.emp_qs.get_employees_by_ids(employees)
+                    print_emps(db_employees)
+                else:
+                    print("No employees are out of office for the given date range.")
+
+            elif option == "6":
                 logging.info("Exiting the program")
                 print("Exiting by option selection. Goodbye!")
                 break
