@@ -225,7 +225,8 @@ def main_menu():
     print("  [3] Who is out of office today")
     print("  [4] Get available employees for date range")
     print("  [5] Who is out of office for date range")
-    print("  [6] Exit")
+    print("  [6] Get used leaves for an employee")
+    print("  [7] Exit")
     print("-" * 55)
 
 if __name__ == "__main__":
@@ -306,6 +307,42 @@ if __name__ == "__main__":
                 show_date_range_results(bamboo, start, end, mode="out")
 
             elif option == "6":
+                print_section_header("Used leaves for an employee")
+                all_emps = bamboo.emp_qs.get_all_employees()
+                print_emps(all_emps, label="employees")
+
+                emp_id = input("Enter employee ID: ").strip()
+                if not emp_id:
+                    print("  No employee ID provided.")
+                    continue
+
+                employee = bamboo.emp_qs.get_employee_by_id(emp_id)
+                if not employee:
+                    print(f"  Employee with ID {emp_id} not found.")
+                    continue
+
+                start = input_date("Enter start date (YYYY-MM-DD)", default=f"{datetime.now().year}-01-01")
+                end = input_date("Enter end date (YYYY-MM-DD)", default=today)
+
+                print(f"\n  Fetching used leaves for {employee.display_name} ({start} to {end})...")
+                result = bamboo.get_employee_used_leaves_no_perms(emp_id, start, end)
+
+                print_section_header(f"Leaves: {employee.display_name}")
+                print(f"  Employee: {employee.display_name} (ID: {emp_id})")
+                print(f"  Period:   {start} to {end}")
+                print(f"  Total used days: {result['total_used_days']}")
+                print(f"  Note: Includes all leave types (vacation, sick, etc.)")
+
+                if result["dates"]:
+                    print("\n  Dates out of office:")
+                    for d in result["dates"]:
+                        d_obj = date.fromisoformat(d)
+                        print(f"    {d_obj.strftime('%A, %Y-%m-%d')}")
+                else:
+                    print("\n  No leave days found for this period.")
+                print()
+
+            elif option == "7":
                 logging.info("Exiting the program")
                 print("Exiting by option selection. Goodbye!")
                 break

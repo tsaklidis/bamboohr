@@ -74,9 +74,10 @@ class BambooTimeOff:
         employees = response.json().get("employees")
         return employees
 
-    def get_time_off(self, start_date: str, end_date: str) -> list[dict]:
+    def get_time_off(self, start_date: str, end_date: str, employee_id: str = None) -> list[dict]:
         """
         Fetch time-off data for the specified date range.
+        Optionally filter by employee_id.
         Attention: Restrictions are applied for Time-Off Data Access.
         """
         url = f"{self.base_url}/time_off/requests"
@@ -84,10 +85,111 @@ class BambooTimeOff:
             "start": start_date,
             "end": end_date
         }
+        if employee_id:
+            params["employeeId"] = employee_id
         url = add_params_to_url(url, params)
         response = self.send_request("GET", url)
         time_off_data = response.json()
         return time_off_data
+
+    def get_employee_used_leaves(self, employee_id: str, start_date: str, end_date: str) -> dict:
+        """
+        Get the number of used leave days for a specific employee in a date range.
+        Only approved time-off requests are counted. Working days only (excludes
+        weekends and company holidays).
+
+        Args:
+            employee_id (str): The BambooHR employee ID.
+            start_date (str): Start date in YYYY-MM-DD format.
+            end_date (str): End date in YYYY-MM-DD format.
+
+        Returns:
+            dict: {
+                "employee_id": str,
+                "total_used_days": int,
+                "by_type": {type_name: days_count, ...},
+                "requests": [{"type": str, "start": str, "end": str, "days": int}, ...]
+            }
+        """
+        time_off = self.get_time_off(start_date, end_date, employee_id=employee_id)
+        working_dates = set(self.get_working_days(start_date, end_date))
+
+        total_used_days = 0
+        by_type = {}
+        requests_detail = []
+
+        for request in time_off:
+            if request.get("status", {}).get("status") != "approved":
+                continue
+            if str(request.get("employeeId")) != str(employee_id):
+                continue
+
+            req_start = date.fromisoformat(request["start"])
+            req_end = date.fromisoformat(request["end"])
+            leave_type = request.get("type", {}).get("name", "Unknown")
+
+            days = 0
+            current = req_start
+            while current <= req_end:
+                if current in working_dates:
+                    days += 1
+                current += timedelta(days=1)
+
+            if days > 0:
+                total_used_days += days
+                by_type[leave_type] = by_type.get(leave_type, 0) + days
+                requests_detail.append({
+                    "type": leave_type,
+                    "start": request["start"],
+                    "end": request["end"],
+                    "days": days
+                })
+
+        return {
+            "employee_id": employee_id,
+            "total_used_days": total_used_days,
+            "by_type": by_type,
+            "requests": requests_detail
+        }
+
+    def get_employee_used_leaves_no_perms(self, employee_id: str, start_date: str, end_date: str) -> dict:
+        """
+        Get used leave days for an employee without requiring time-off permissions.
+        Uses the /time_off/whos_out/ endpoint and checks each working day
+        to see if the employee was out. Includes all leave types (vacation,
+        sick, etc.) since the endpoint does not distinguish between them.
+
+        Args:
+            employee_id (str): The BambooHR employee ID.
+            start_date (str): Start date in YYYY-MM-DD format.
+            end_date (str): End date in YYYY-MM-DD format.
+
+        Returns:
+            dict: {
+                "employee_id": str,
+                "total_used_days": int,
+                "dates": [list of date strings when the employee was out]
+            }
+        """
+        raw_whos_out = self.get_who_is_out_employees(start_date, end_date)
+        holiday_dates = self.extract_holiday_dates(raw_whos_out)
+        working_dates = self.get_working_days(start_date, end_date)
+
+        used_dates = []
+        emp_id = str(employee_id)
+
+        for working_date in working_dates:
+            if working_date in holiday_dates:
+                continue
+            out_ids = {str(eid) for eid in self.get_out_ids_for_date(raw_whos_out, working_date)}
+            if emp_id in out_ids:
+                used_dates.append(working_date.isoformat())
+
+        return {
+            "employee_id": employee_id,
+            "total_used_days": len(used_dates),
+            "dates": used_dates
+        }
 
     def get_who_is_out_employees(self, start: str, end: str, only_ids=False) -> (list)[dict]:
         """
